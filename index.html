@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Tracker Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Finance Tracker Pro</h1>
+    <div class="dashboard">
+        <div class="saldo">
+            <h2>Saldo Total</h2>
+            <span id="saldo">R$ 0,00</span>
+        </div>
+        <div class="entradas-saidas">
+            <div class="entrada">
+                <h3>Entradas</h3>
+                <span id="entradas">R$ 0,00</span>
+            </div>
+            <div class="saida">
+                <h3>Saídas</h3>
+                <span id="saidas">R$ 0,00</span>
+            </div>
+        </div>
+    </div>
+    <form id="form-transacao">
+        <input type="text" id="descricao" placeholder="Descrição" required>
+        <input type="number" id="valor" placeholder="Valor" step="0.01" required>
+        <select id="tipo">
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+        </select>
+        <button type="submit">Adicionar</button>
+    </form>
+    <h2>Transações</h2>
+    <ul id="lista-transacoes"></ul>
+    <script src="script.js"></script>
+</body>
+</html>
