@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Tracker Pro</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>Finance Tracker Pro</h1>
@@ -37,6 +38,23 @@
         <button id="btn-mostrar-entradas" type="button">Mostrar Entradas</button>
         <button id="btn-mostrar-saidas" type="button">Mostrar Saídas</button>
         <button id="btn-mostrar-todas" type="button">Mostrar Todas</button>
+        <div style="margin-top:12px;">
+            <strong style="display:block; margin-bottom:6px; color:#2d3a4b;">Filtros por data</strong>
+            <label for="data-inicio">Início:</label>
+            <input type="date" id="data-inicio">
+            <label for="data-fim">Fim:</label>
+            <input type="date" id="data-fim">
+        </div>
+    </div>
+    <div style="max-width: 900px; margin: 0 auto 32px auto; display: flex; flex-wrap: wrap; gap: 32px; justify-content: center;">
+        <div style="flex:1; min-width:320px;">
+            <h3 style="text-align:center;">Despesas por Categoria</h3>
+            <canvas id="pie-categorias" width="350" height="350"></canvas>
+        </div>
+        <div style="flex:2; min-width:320px;">
+            <h3 style="text-align:center;">Saldo ao longo do mês</h3>
+            <canvas id="line-saldo" width="500" height="350"></canvas>
+        </div>
     </div>
     <h2>Transações</h2>
     <ul id="lista-transacoes"></ul>
