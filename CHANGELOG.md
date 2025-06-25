@@ -1,6 +1,6 @@
 # 📦 CHANGELOG
 
-Todas as mudanças notáveis deste projeto serão documentadas aqui.
+Todas as mudanças notáveis deste projeto estão documentadas aqui.
 
 O formato segue as convenções de [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e versionamento semântico ([SemVer](https://semver.org/lang/pt-BR/)).
 
@@ -16,12 +16,23 @@ O formato segue as convenções de [Keep a Changelog](https://keepachangelog.com
 - Cálculo do saldo, entradas e saídas
 - Armazenamento local das transações via `localStorage`
 
+## [0.2.0] - 2025-06-25
+
+### Adicionado
+- Filtro por tipo de transação (entrada/saída)
+- Filtro por intervalo de datas
+- Validação de campos do formulário (descrição obrigatória, valor maior que zero, mensagem de erro)
+- Exportação de extrato em PDF (tabela: Data | Descrição | Valor)
+- Gráficos de pizza (despesas por categoria) e linha (saldo ao longo do mês)
+- Dark mode com toggle e salvamento de preferência
+- Responsividade para mobile
+
 ---
 
 ## [Unreleased]
 
 ### Planejado
-- Filtro por tipo de transação (entrada/saída)
-- Exportação dos dados para CSV
-- Gráficos de receitas e despesas
-- Validação de campos no formulário
+- Conectar a carteira do celular pra quando tiver alguma compra no cartão, aparecer o gasto automaticamente no app. Ou integração com banco (estudar)
+- Modo empresa
+- Controle de gastos (colocar um limite de gastos e avisar quando estiver próximo desse limite)
+- Pode exportar o CSV de um período específico. Poder exportar só as entradas ou só as saídas. Total abaixo dos valores mostrando o saldo resultante.
