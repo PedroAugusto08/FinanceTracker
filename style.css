@@ -3,6 +3,51 @@ body {
     background: #f4f6f8;
     margin: 0;
     padding: 0;
+    transition: background 0.3s, color 0.3s;
+}
+
+.dark-mode {
+    background: #181c22;
+    color: #f4f6f8;
+}
+.dark-mode .dashboard,
+.dark-mode form,
+.dark-mode #lista-transacoes {
+    background: #23272f;
+    color: #f4f6f8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode label, .dark-mode strong {
+    color: #e0e6ed;
+}
+.dark-mode .saldo h2, .dark-mode .entrada h3, .dark-mode .saida h3 {
+    color: #b2becd;
+}
+.dark-mode #saldo {
+    color: #27ef96;
+}
+.dark-mode .entrada span {
+    color: #27ef96;
+}
+.dark-mode .saida span {
+    color: #ff7675;
+}
+.dark-mode #lista-transacoes li {
+    background: #23272f;
+    color: #f4f6f8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.dark-mode .btn-remover {
+    background: #ff7675;
+    color: #fff;
+}
+.dark-mode .btn-remover:hover {
+    background: #d63031;
+}
+.dark-mode .erro-form {
+    background: #2d2323;
+    color: #ff7675;
+    border-color: #ff7675;
 }
 
 .container, .dashboard, form, #lista-transacoes {
@@ -136,4 +181,73 @@ form button:hover {
     padding: 8px 0;
     max-width: 400px;
     display: block;
+}
+
+/* Media queries para mobile */
+@media (max-width: 700px) {
+    .dashboard {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+    .saldo {
+        order: -1;
+        text-align: center;
+        margin-bottom: 12px;
+    }
+    #saldo {
+        font-size: 2.2em;
+        margin-bottom: 4px;
+    }
+    .entradas-saidas {
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+    }
+    #lista-transacoes li {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 8px;
+        font-size: 0.98em;
+    }
+    .filtros-transacoes {
+        font-size: 0.98em;
+    }
+    .dashboard {
+        gap: 8px;
+    }
+    h1 {
+        font-size: 1.3em;
+        margin-top: 18px;
+    }
+    .saldo h2 {
+        font-size: 1em;
+    }
+    #saldo {
+        font-size: 1.3em;
+    }
+    .pie-categorias, .line-saldo {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+@media (max-width: 500px) {
+    .saldo {
+        margin-bottom: 10px;
+    }
+    #saldo {
+        font-size: 1.5em;
+    }
+    .dashboard, form, #lista-transacoes {
+        padding: 6px;
+    }
+    h1 {
+        font-size: 1em;
+    }
+    .saldo h2 {
+        font-size: 0.95em;
+    }
+    #saldo {
+        font-size: 1em;
+    }
 }

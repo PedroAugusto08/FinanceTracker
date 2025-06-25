@@ -272,6 +272,27 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTransacoes();
     });
 
+    // Dark mode toggle
+    const toggleDark = document.getElementById('toggle-darkmode');
+    // Salva preferência no localStorage
+    function setDarkMode(ativo) {
+        if (ativo) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'on');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', 'off');
+        }
+    }
+    toggleDark.addEventListener('change', (e) => {
+        setDarkMode(e.target.checked);
+    });
+    // Carrega preferência ao abrir
+    if (localStorage.getItem('darkMode') === 'on') {
+        toggleDark.checked = true;
+        setDarkMode(true);
+    }
+
     // Inicialização
     carregarTransacoes();
     atualizarTotais();
