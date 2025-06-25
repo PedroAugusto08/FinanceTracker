@@ -124,3 +124,16 @@ form button:hover {
 .btn-remover:hover {
     background: #c0392b;
 }
+
+.erro-form {
+    color: #e74c3c;
+    font-size: 1em;
+    margin: 8px auto 0 auto;
+    text-align: center;
+    background: #fdeaea;
+    border: 1px solid #e74c3c;
+    border-radius: 6px;
+    padding: 8px 0;
+    max-width: 400px;
+    display: block;
+}
