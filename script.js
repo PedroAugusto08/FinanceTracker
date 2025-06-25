@@ -293,6 +293,42 @@ document.addEventListener('DOMContentLoaded', () => {
         setDarkMode(true);
     }
 
+    // Exportar extrato estilo banco em PDF (tabela)
+    document.getElementById('btn-exportar-csv').addEventListener('click', () => {
+        if (!transacoes.length) {
+            mostrarErro('Não há transações para exportar.');
+            return;
+        }
+        // Gera HTML da tabela
+        const header = ['Data', 'Descrição', 'Valor'];
+        const linhas = transacoes.map(t => [
+            t.data ? new Date(t.data).toLocaleDateString('pt-BR') : '',
+            (t.descricao || '').replace(/\|/g, ' '),
+            (t.tipo === 'saida' ? '-' : '+') + ' R$ ' + Number(t.valor).toLocaleString('pt-BR', {minimumFractionDigits:2})
+        ]);
+        let html = `<html><head><meta charset='utf-8'><title>Extrato Financeiro</title>
+        <style>
+        body { font-family: Arial, sans-serif; margin: 32px; }
+        h2 { text-align: center; }
+        table { border-collapse: collapse; width: 100%; margin-top: 24px; }
+        th, td { border: 1px solid #bbb; padding: 8px 12px; text-align: left; font-size: 1em; }
+        th { background: #f4f6f8; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        </style></head><body>`;
+        html += `<h2>Extrato Financeiro</h2>`;
+        html += `<table><thead><tr>${header.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+        linhas.forEach(l => {
+            html += `<tr>${l.map(v=>`<td>${v}</td>`).join('')}</tr>`;
+        });
+        html += `</tbody></table></body></html>`;
+        // Abre janela de impressão para PDF
+        const win = window.open('', '', 'width=900,height=700');
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        setTimeout(() => { win.print(); }, 500);
+    });
+
     // Inicialização
     carregarTransacoes();
     atualizarTotais();
