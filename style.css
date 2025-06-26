@@ -193,22 +193,29 @@ form button:hover {
     display: flex;
     background: #fff;
     border-radius: 10px 10px 0 0;
-    overflow: hidden;
+    overflow-x: auto;
     box-shadow: 0 2px 8px rgba(44,62,80,0.07);
     margin-bottom: 0;
+    gap: 8px;
+    scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar {
+    display: none;
 }
 .tab {
-    flex: 1;
-    padding: 16px 0;
+    flex: 1 0 120px;
+    min-width: 110px;
+    padding: 16px 0px;
     background: #f4f6f8;
     border: none;
     outline: none;
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: 600;
     color: #2d3a4b;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
     border-bottom: 2px solid transparent;
+    white-space: nowrap;
 }
 .tab.active {
     background: #fff;

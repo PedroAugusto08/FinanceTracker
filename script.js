@@ -574,14 +574,6 @@ async function loadData() {
 }
 window.loadData = loadData;
 
-// Inicialização
-// Remover as linhas abaixo para evitar UI "zerada" antes do login/dados:
-// carregarCategorias();
-// atualizarSelectCategorias();
-// renderizarCategorias();
-// atualizarTotais();
-// renderizarTransacoes();
-
 // --- CATEGORIAS ---
 function renderizarCategorias() {
   listaCategorias.innerHTML = '';
