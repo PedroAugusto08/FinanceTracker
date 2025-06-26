@@ -1,5 +1,10 @@
 // script.js
 import { loginWithGoogle } from './auth.js';
+import { db } from './firebase-config.js';
+import { auth } from './auth.js';
+import {
+  collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, onSnapshot
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 console.log("Testando script.js");
 
@@ -33,6 +38,83 @@ let transacoes = [];
 let categorias = [];
 let filtro = 'todas'; // 'todas', 'entrada', 'saida'
 let pieChart, lineChart;
+let usuarioAtual = null;
+
+// --- FIRESTORE HELPERS ---
+function getUserId() {
+  return auth.currentUser ? auth.currentUser.uid : null;
+}
+function userCollection(nome) {
+  const uid = getUserId();
+  if (!uid) throw new Error('Usuário não autenticado');
+  return collection(db, `users/${uid}/${nome}`);
+}
+function userDoc(nome, id) {
+  const uid = getUserId();
+  if (!uid) throw new Error('Usuário não autenticado');
+  return doc(db, `users/${uid}/${nome}/${id}`);
+}
+
+// --- CRUD FIRESTORE ---
+async function carregarCategoriasFirestore() {
+  const col = userCollection('categorias');
+  const snap = await getDocs(col);
+  categorias = snap.docs.map(doc => doc.data().nome);
+  if (categorias.length === 0) {
+    // categorias padrão
+    categorias = ['Alimentação', 'Transporte', 'Lazer', 'Salário', 'Outros'];
+    await Promise.all(categorias.map(nome => addDoc(col, { nome })));
+  }
+}
+async function salvarCategoriaFirestore(nome) {
+  await addDoc(userCollection('categorias'), { nome });
+}
+async function removerCategoriaFirestore(nome) {
+  const col = userCollection('categorias');
+  const q = query(col, where('nome', '==', nome));
+  const snap = await getDocs(q);
+  for (const d of snap.docs) await deleteDoc(d.ref);
+}
+async function editarCategoriaFirestore(nomeAntigo, nomeNovo) {
+  const col = userCollection('categorias');
+  const q = query(col, where('nome', '==', nomeAntigo));
+  const snap = await getDocs(q);
+  for (const d of snap.docs) await updateDoc(d.ref, { nome: nomeNovo });
+  // Atualiza nas transações
+  const transCol = userCollection('transacoes');
+  const tq = query(transCol, where('categoria', '==', nomeAntigo));
+  const tsnap = await getDocs(tq);
+  for (const t of tsnap.docs) await updateDoc(t.ref, { categoria: nomeNovo });
+}
+async function carregarTransacoesFirestore() {
+  const col = userCollection('transacoes');
+  const snap = await getDocs(col);
+  transacoes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+async function salvarTransacaoFirestore(transacao) {
+  // Remove campo categoria se vazio ou undefined
+  const t = { ...transacao };
+  if (!t.categoria) delete t.categoria;
+  await addDoc(userCollection('transacoes'), t);
+}
+async function removerTransacaoFirestore(id) {
+  await deleteDoc(userDoc('transacoes', id));
+}
+
+// --- SETTINGS (dark mode) ---
+async function carregarSettingsFirestore() {
+  const uid = getUserId();
+  if (!uid) return {};
+  const ref = doc(db, `users/${uid}/settings/darkmode`);
+  const snap = await getDoc(ref);
+  return snap.exists() ? snap.data() : {};
+}
+async function salvarSettingsFirestore({ darkMode }) {
+  const uid = getUserId();
+  if (!uid) return;
+  const ref = doc(db, `users/${uid}/settings/darkmode`);
+  await setDoc(ref, { darkMode });
+}
 
 // --- CATEGORIAS ---
 // Referências DOM das categorias
@@ -49,153 +131,12 @@ if (!selectCategoria) {
     tipoInputLocal.insertAdjacentElement('afterend', selectCategoria);
 }
 
-// Carregar categorias do localStorage
-function carregarCategorias() {
-    const dados = localStorage.getItem('categorias');
-    if (dados) {
-        categorias = JSON.parse(dados);
-    } else {
-        categorias = ['Alimentação', 'Transporte', 'Lazer', 'Salário', 'Outros'];
-        salvarCategorias();
-    }
-}
-function salvarCategorias() {
-    localStorage.setItem('categorias', JSON.stringify(categorias));
-}
-function atualizarSelectCategorias() {
-    selectCategoria.innerHTML = '';
-    const optVazio = document.createElement('option');
-    optVazio.value = '';
-    optVazio.textContent = 'Sem categoria';
-    selectCategoria.appendChild(optVazio);
-    categorias.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        selectCategoria.appendChild(opt);
-    });
-}
-function renderizarCategorias() {
-    listaCategorias.innerHTML = '';
-    categorias.forEach((cat, idx) => {
-        const li = document.createElement('li');
-        li.style = 'display:flex; align-items:center; justify-content:space-between; background:#f8fafb; border-radius:8px; margin-bottom:8px; padding:8px 12px;';
-        li.innerHTML = `
-            <span>${cat}</span>
-            <span>
-                <button class="btn-editar-categoria" data-idx="${idx}" style="margin-right:8px; background:#2980b9; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Editar</button>
-                <button class="btn-remover-categoria" data-idx="${idx}" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Remover</button>
-            </span>
-        `;
-        listaCategorias.appendChild(li);
-    });
-}
-// Adicionar categoria
-if (formCategoria) {
-    formCategoria.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const nome = nomeCategoriaInput.value.trim();
-        if (!nome) {
-            mostrarErro('O nome da categoria não pode ficar vazio.');
-            return;
-        }
-        if (categorias.includes(nome)) {
-            mostrarErro('Categoria já existe.');
-            return;
-        }
-        categorias.push(nome);
-        salvarCategorias();
-        atualizarSelectCategorias();
-        renderizarCategorias();
-        nomeCategoriaInput.value = '';
-    });
-}
-// Editar/remover categoria
-if (listaCategorias) {
-    listaCategorias.addEventListener('click', (e) => {
-        if (e.target.classList.contains('btn-remover-categoria')) {
-            const idx = +e.target.getAttribute('data-idx');
-            // Impede remover categoria em uso
-            const emUso = transacoes.some(t => t.categoria === categorias[idx]);
-            if (emUso) {
-                mostrarErro('Não é possível remover: categoria em uso.');
-                return;
-            }
-            categorias.splice(idx, 1);
-            salvarCategorias();
-            atualizarSelectCategorias();
-            renderizarCategorias();
-        } else if (e.target.classList.contains('btn-editar-categoria')) {
-            const idx = +e.target.getAttribute('data-idx');
-            const novoNome = prompt('Novo nome da categoria:', categorias[idx]);
-            if (!novoNome) return;
-            if (categorias.includes(novoNome) && novoNome !== categorias[idx]) {
-                mostrarErro('Categoria já existe.');
-                return;
-            }
-            // Atualiza nas transações
-            transacoes.forEach(t => {
-                if (t.categoria === categorias[idx]) t.categoria = novoNome;
-            });
-            categorias[idx] = novoNome;
-            salvarCategorias();
-            salvarTransacoes();
-            atualizarSelectCategorias();
-            renderizarCategorias();
-            renderizarTransacoes();
-        }
-    });
-}
-// --- FIM CATEGORIAS ---
-
-// Carregar do localStorage
-function carregarTransacoes() {
-    const dados = localStorage.getItem('transacoes');
-    if (dados) {
-        transacoes = JSON.parse(dados);
-    }
-}
-
-// Salvar no localStorage
-function salvarTransacoes() {
-    localStorage.setItem('transacoes', JSON.stringify(transacoes));
-}
-
-// Atualizar totais
-function atualizarTotais() {
-    let entradas = 0, saidas = 0;
-    transacoes.forEach(t => {
-        if (t.tipo === 'entrada') {
-            entradas += t.valor;
-        } else {
-            saidas += t.valor;
-        }
-    });
-    const saldo = entradas - saidas;
-    saldoSpan.textContent = saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    entradasSpan.textContent = entradas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    saidasSpan.textContent = saidas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// Função para filtrar por data
-function filtrarPorData(lista) {
-    let inicio = dataInicioInput.value;
-    let fim = dataFimInput.value;
-    if (!inicio && !fim) return lista;
-    return lista.filter(t => {
-        if (!t.data) return true; // compatibilidade
-        const dataT = t.data.split('T')[0];
-        if (inicio && dataT < inicio) return false;
-        if (fim && dataT > fim) return false;
-        return true;
-    });
-}
-
-// Utilitário: extrair categoria da descrição (exemplo simples)
-function extrairCategoria(descricao) {
-    // Se quiser, pode melhorar para regex ou dropdown de categorias
-    // Aqui, considera a primeira palavra como categoria
-    return descricao.split(' ')[0].toLowerCase();
+// Carregar categorias do Firestore
+async function carregarCategorias() {
+    await carregarCategoriasFirestore();
+    atualizarSelectCategorias();
+    renderizarCategorias();
+    atualizarSelectCategorias();
 }
 
 // Atualiza o gráfico de pizza de despesas por categoria
@@ -298,8 +239,60 @@ function atualizarLineChart() {
     });
 }
 
+// Atualizar totais
+function atualizarTotais() {
+    let entradas = 0, saidas = 0;
+    transacoes.forEach(t => {
+        if (t.tipo === 'entrada') {
+            entradas += t.valor;
+        } else {
+            saidas += t.valor;
+        }
+    });
+    const saldo = entradas - saidas;
+    saldoSpan.textContent = saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    entradasSpan.textContent = entradas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    saidasSpan.textContent = saidas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Função para filtrar por data
+function filtrarPorData(lista) {
+    let inicio = dataInicioInput.value;
+    let fim = dataFimInput.value;
+    if (!inicio && !fim) return lista;
+    return lista.filter(t => {
+        if (!t.data) return true; // compatibilidade
+        const dataT = t.data.split('T')[0];
+        if (inicio && dataT < inicio) return false;
+        if (fim && dataT > fim) return false;
+        return true;
+    });
+}
+
+// Utilitário: extrair categoria da descrição (exemplo simples)
+function extrairCategoria(descricao) {
+    // Se quiser, pode melhorar para regex ou dropdown de categorias
+    // Aqui, considera a primeira palavra como categoria
+    return descricao.split(' ')[0].toLowerCase();
+}
+
+// Atualiza o select de categorias
+function atualizarSelectCategorias() {
+  selectCategoria.innerHTML = '';
+  const optVazio = document.createElement('option');
+  optVazio.value = '';
+  optVazio.textContent = 'Sem categoria';
+  selectCategoria.appendChild(optVazio);
+  categorias.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    selectCategoria.appendChild(opt);
+  });
+}
+
 // Renderizar lista com filtro e ordenação
-function renderizarTransacoes() {
+async function renderizarTransacoes() {
     listaTransacoes.innerHTML = '';
     let transacoesFiltradas = transacoes;
     if (filtro === 'entrada') {
@@ -347,7 +340,7 @@ function mostrarErro(msg) {
 }
 
 // Adicionar transação
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const descricao = descricaoInput.value.trim();
     const valor = parseFloat(valorInput.value);
@@ -363,10 +356,9 @@ form.addEventListener('submit', (e) => {
         valorInput.focus();
         return;
     }
-    // Categoria agora é opcional
     const data = new Date().toISOString();
-    transacoes.push({ descricao, valor, tipo, categoria: categoria || undefined, data });
-    salvarTransacoes();
+    await salvarTransacaoFirestore({ descricao, valor, tipo, categoria: categoria || undefined, data });
+    await carregarTransacoesFirestore();
     atualizarTotais();
     renderizarTransacoes();
     form.reset();
@@ -375,13 +367,16 @@ form.addEventListener('submit', (e) => {
 });
 
 // Remover transação
-listaTransacoes.addEventListener('click', (e) => {
+listaTransacoes.addEventListener('click', async (e) => {
     if (e.target.classList.contains('btn-remover')) {
         const idx = e.target.getAttribute('data-idx');
-        transacoes.splice(idx, 1);
-        salvarTransacoes();
-        atualizarTotais();
-        renderizarTransacoes();
+        const trans = transacoes[idx];
+        if (trans && trans.id) {
+            await removerTransacaoFirestore(trans.id);
+            await carregarTransacoesFirestore();
+            atualizarTotais();
+            renderizarTransacoes();
+        }
     }
 });
 
@@ -434,24 +429,21 @@ if (allExports.length > 1) {
 
 // Dark mode toggle (agora na aba de configurações)
 const toggleDark = document.getElementById('toggle-darkmode');
-function setDarkMode(ativo) {
-    if (ativo) {
-        document.body.classList.add('dark-mode');
-        localStorage.setItem('darkMode', 'on');
-    } else {
-        document.body.classList.remove('dark-mode');
-        localStorage.setItem('darkMode', 'off');
-    }
+async function setDarkMode(ativo) {
+  if (ativo) {
+    document.body.classList.add('dark-mode');
+    await salvarSettingsFirestore({ darkMode: 'on' });
+  } else {
+    document.body.classList.remove('dark-mode');
+    await salvarSettingsFirestore({ darkMode: 'off' });
+  }
 }
 if (toggleDark) {
     toggleDark.addEventListener('change', (e) => {
         setDarkMode(e.target.checked);
     });
-    if (localStorage.getItem('darkMode') === 'on') {
-        toggleDark.checked = true;
-        setDarkMode(true);
-    }
 }
+
 // Exportar extrato (agora na aba de configurações)
 const btnExportar = document.getElementById('btn-exportar-csv');
 if (btnExportar) {
@@ -544,10 +536,48 @@ if (btnLoginGoogle) {
     });
 }
 
+// --- INICIALIZAÇÃO REATIVA ---
+async function loadData() {
+  usuarioAtual = auth.currentUser;
+  if (!usuarioAtual) return;
+  await carregarCategoriasFirestore();
+  await carregarTransacoesFirestore();
+  atualizarSelectCategorias();
+  renderizarCategorias();
+  atualizarTotais();
+  renderizarTransacoes();
+  // Dark mode
+  const settings = await carregarSettingsFirestore();
+  if (settings.darkMode === 'on') {
+    toggleDark.checked = true;
+    document.body.classList.add('dark-mode');
+  } else {
+    toggleDark.checked = false;
+    document.body.classList.remove('dark-mode');
+  }
+}
+window.loadData = loadData;
+
 // Inicialização
 carregarCategorias();
 atualizarSelectCategorias();
 renderizarCategorias();
-carregarTransacoes();
 atualizarTotais();
 renderizarTransacoes();
+
+// --- CATEGORIAS ---
+function renderizarCategorias() {
+  listaCategorias.innerHTML = '';
+  categorias.forEach((cat, idx) => {
+    const li = document.createElement('li');
+    li.style = 'display:flex; align-items:center; justify-content:space-between; background:#f8fafb; border-radius:8px; margin-bottom:8px; padding:8px 12px;';
+    li.innerHTML = `
+      <span>${cat}</span>
+      <span>
+        <button class="btn-editar-categoria" data-idx="${idx}" style="margin-right:8px; background:#2980b9; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Editar</button>
+        <button class="btn-remover-categoria" data-idx="${idx}" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Remover</button>
+      </span>
+    `;
+    listaCategorias.appendChild(li);
+  });
+}
