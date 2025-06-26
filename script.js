@@ -56,6 +56,26 @@ function userDoc(nome, id) {
 }
 
 // --- CRUD FIRESTORE ---
+let unsubscribeTransacoes = null;
+let unsubscribeCategorias = null;
+
+function listenCategoriasFirestore() {
+  if (unsubscribeCategorias) unsubscribeCategorias();
+  unsubscribeCategorias = onSnapshot(userCollection('categorias'), (snap) => {
+    categorias = snap.docs.map(doc => doc.data().nome);
+    atualizarSelectCategorias();
+    renderizarCategorias();
+  });
+}
+function listenTransacoesFirestore() {
+  if (unsubscribeTransacoes) unsubscribeTransacoes();
+  unsubscribeTransacoes = onSnapshot(userCollection('transacoes'), (snap) => {
+    transacoes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    atualizarTotais();
+    renderizarTransacoes();
+  });
+}
+
 async function carregarCategoriasFirestore() {
   const col = userCollection('categorias');
   const snap = await getDocs(col);
@@ -540,12 +560,8 @@ if (btnLoginGoogle) {
 async function loadData() {
   usuarioAtual = auth.currentUser;
   if (!usuarioAtual) return;
-  await carregarCategoriasFirestore();
-  await carregarTransacoesFirestore();
-  atualizarSelectCategorias();
-  renderizarCategorias();
-  atualizarTotais();
-  renderizarTransacoes();
+  listenCategoriasFirestore();
+  listenTransacoesFirestore();
   // Dark mode
   const settings = await carregarSettingsFirestore();
   if (settings.darkMode === 'on') {
@@ -559,11 +575,12 @@ async function loadData() {
 window.loadData = loadData;
 
 // Inicialização
-carregarCategorias();
-atualizarSelectCategorias();
-renderizarCategorias();
-atualizarTotais();
-renderizarTransacoes();
+// Remover as linhas abaixo para evitar UI "zerada" antes do login/dados:
+// carregarCategorias();
+// atualizarSelectCategorias();
+// renderizarCategorias();
+// atualizarTotais();
+// renderizarTransacoes();
 
 // --- CATEGORIAS ---
 function renderizarCategorias() {
