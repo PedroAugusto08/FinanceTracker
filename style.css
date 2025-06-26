@@ -195,7 +195,7 @@ form button:hover {
     border-radius: 10px 10px 0 0;
     box-shadow: 0 2px 8px rgba(44,62,80,0.07);
     margin-bottom: 0;
-    gap: 8px;
+    gap: 0;
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
@@ -207,25 +207,23 @@ form button:hover {
     flex: 1 1 0;
     min-width: 0;
     max-width: none;
-    padding: 16px 0px;
+    padding: 10px 0px;
     background: #f4f6f8;
     border: none;
     outline: none;
-    font-size: 1em;
+    font-size: 0.95em;
     font-weight: 600;
     color: #2d3a4b;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
     border-bottom: 2px solid transparent;
-    /* Permite quebra de linha */
-    white-space: normal;
-    text-overflow: unset;
-    overflow: visible;
+    white-space: nowrap;
+    text-overflow: clip;
+    overflow: hidden;
     justify-content: center;
     display: flex;
     align-items: center;
     text-align: center;
-    word-break: break-word;
 }
 .tab.active {
     background: #fff;
