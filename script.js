@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnMostrarTodas = document.getElementById('btn-mostrar-todas');
     const dataInicioInput = document.getElementById('data-inicio');
     const dataFimInput = document.getElementById('data-fim');
+    const selectOrdenarPor = document.getElementById('ordenar-por');
+    const selectOrdem = document.getElementById('ordem');
 
     // Mensagem de erro
     let erroDiv = document.getElementById('erro-form');
@@ -172,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Renderizar lista com filtro
+    // Renderizar lista com filtro e ordenação
     function renderizarTransacoes() {
         listaTransacoes.innerHTML = '';
         let transacoesFiltradas = transacoes;
@@ -182,6 +184,19 @@ document.addEventListener('DOMContentLoaded', () => {
             transacoesFiltradas = transacoes.filter(t => t.tipo === 'saida');
         }
         transacoesFiltradas = filtrarPorData(transacoesFiltradas);
+        // Ordenação
+        const ordenarPor = selectOrdenarPor.value;
+        const ordem = selectOrdem.value;
+        transacoesFiltradas = [...transacoesFiltradas].sort((a, b) => {
+            if (ordenarPor === 'data') {
+                const dA = a.data ? new Date(a.data) : new Date(0);
+                const dB = b.data ? new Date(b.data) : new Date(0);
+                return ordem === 'asc' ? dA - dB : dB - dA;
+            } else if (ordenarPor === 'valor') {
+                return ordem === 'asc' ? a.valor - b.valor : b.valor - a.valor;
+            }
+            return 0;
+        });
         transacoesFiltradas.forEach((t, idx) => {
             const idxReal = transacoes.indexOf(t);
             const li = document.createElement('li');
@@ -271,6 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         renderizarTransacoes();
     });
+    // Atualiza lista ao mudar ordenação
+    selectOrdenarPor.addEventListener('change', renderizarTransacoes);
+    selectOrdem.addEventListener('change', renderizarTransacoes);
 
     // Dark mode toggle
     const toggleDark = document.getElementById('toggle-darkmode');

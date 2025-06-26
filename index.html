@@ -62,6 +62,17 @@
             <canvas id="line-saldo" width="500" height="350"></canvas>
         </div>
     </div>
+    <div class="ordenacao-transacoes" style="max-width:900px; margin:0 auto 12px auto; display:flex; gap:16px; align-items:center;">
+        <label for="ordenar-por" style="font-weight:600;">Ordenar por:</label>
+        <select id="ordenar-por" style="padding:6px 10px; border-radius:6px; border:1px solid #dbe2ea;">
+            <option value="data">Data</option>
+            <option value="valor">Valor</option>
+        </select>
+        <select id="ordem" style="padding:6px 10px; border-radius:6px; border:1px solid #dbe2ea;">
+            <option value="desc">Decrescente</option>
+            <option value="asc">Crescente</option>
+        </select>
+    </div>
     <h2>Transações</h2>
     <ul id="lista-transacoes"></ul>
     <script src="script.js"></script>
