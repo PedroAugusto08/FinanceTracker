@@ -191,7 +191,7 @@ form button:hover {
 /* Tabs styles */
 .tabs {
     display: flex;
-    background: #fff;
+    background: #ffffff;
     border-radius: 10px 10px 0 0;
     overflow-x: auto;
     box-shadow: 0 2px 8px rgba(44,62,80,0.07);
@@ -204,10 +204,10 @@ form button:hover {
     display: none;
 }
 .tab {
-    flex: 1 0 120px;
+    flex: 1 0 60px;
     min-width: 110px;
-    max-width: 160px;
-    padding: 16px 0px;
+    max-width: 140px;
+    padding: 16px 10px;
     background: #f4f6f8;
     border: none;
     outline: none;
