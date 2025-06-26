@@ -80,7 +80,11 @@
         <ul id="lista-transacoes"></ul>
     </section>
     <section id="categorias" class="tab-content">
-        <div style="text-align:center; margin:32px 0; color:#888;">(Em breve: gerenciamento de categorias)</div>
+        <form id="form-categoria" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:18px;">
+            <input type="text" id="nome-categoria" placeholder="Nova categoria" required maxlength="32" style="flex:2; min-width:120px;">
+            <button type="submit">Adicionar</button>
+        </form>
+        <ul id="lista-categorias" style="max-width:400px; margin:0 auto; padding:0; list-style:none;"></ul>
     </section>
     <section id="configuracoes" class="tab-content">
             <div style="display:flex; flex-direction:column; gap:24px; align-items:center;">

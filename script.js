@@ -27,8 +27,123 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let transacoes = [];
+    let categorias = [];
     let filtro = 'todas'; // 'todas', 'entrada', 'saida'
     let pieChart, lineChart;
+
+    // --- CATEGORIAS ---
+    // Referências DOM das categorias
+    const formCategoria = document.getElementById('form-categoria');
+    const nomeCategoriaInput = document.getElementById('nome-categoria');
+    const listaCategorias = document.getElementById('lista-categorias');
+    // Referência ao select de tipo já existente no HTML
+    const tipoInputLocal = document.getElementById('tipo');
+    // Garante que o select de categoria exista e esteja após o tipo
+    let selectCategoria = document.getElementById('categoria');
+    if (!selectCategoria) {
+        selectCategoria = document.createElement('select');
+        selectCategoria.id = 'categoria';
+        tipoInputLocal.insertAdjacentElement('afterend', selectCategoria);
+    }
+
+    // Carregar categorias do localStorage
+    function carregarCategorias() {
+        const dados = localStorage.getItem('categorias');
+        if (dados) {
+            categorias = JSON.parse(dados);
+        } else {
+            categorias = ['Alimentação', 'Transporte', 'Lazer', 'Salário', 'Outros'];
+            salvarCategorias();
+        }
+    }
+    function salvarCategorias() {
+        localStorage.setItem('categorias', JSON.stringify(categorias));
+    }
+    function atualizarSelectCategorias() {
+        selectCategoria.innerHTML = '';
+        const optVazio = document.createElement('option');
+        optVazio.value = '';
+        optVazio.textContent = 'Sem categoria';
+        selectCategoria.appendChild(optVazio);
+        categorias.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            selectCategoria.appendChild(opt);
+        });
+    }
+    function renderizarCategorias() {
+        listaCategorias.innerHTML = '';
+        categorias.forEach((cat, idx) => {
+            const li = document.createElement('li');
+            li.style = 'display:flex; align-items:center; justify-content:space-between; background:#f8fafb; border-radius:8px; margin-bottom:8px; padding:8px 12px;';
+            li.innerHTML = `
+                <span>${cat}</span>
+                <span>
+                    <button class="btn-editar-categoria" data-idx="${idx}" style="margin-right:8px; background:#2980b9; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Editar</button>
+                    <button class="btn-remover-categoria" data-idx="${idx}" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Remover</button>
+                </span>
+            `;
+            listaCategorias.appendChild(li);
+        });
+    }
+    // Adicionar categoria
+    if (formCategoria) {
+        formCategoria.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nome = nomeCategoriaInput.value.trim();
+            if (!nome) {
+                mostrarErro('O nome da categoria não pode ficar vazio.');
+                return;
+            }
+            if (categorias.includes(nome)) {
+                mostrarErro('Categoria já existe.');
+                return;
+            }
+            categorias.push(nome);
+            salvarCategorias();
+            atualizarSelectCategorias();
+            renderizarCategorias();
+            nomeCategoriaInput.value = '';
+        });
+    }
+    // Editar/remover categoria
+    if (listaCategorias) {
+        listaCategorias.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-remover-categoria')) {
+                const idx = +e.target.getAttribute('data-idx');
+                // Impede remover categoria em uso
+                const emUso = transacoes.some(t => t.categoria === categorias[idx]);
+                if (emUso) {
+                    mostrarErro('Não é possível remover: categoria em uso.');
+                    return;
+                }
+                categorias.splice(idx, 1);
+                salvarCategorias();
+                atualizarSelectCategorias();
+                renderizarCategorias();
+            } else if (e.target.classList.contains('btn-editar-categoria')) {
+                const idx = +e.target.getAttribute('data-idx');
+                const novoNome = prompt('Novo nome da categoria:', categorias[idx]);
+                if (!novoNome) return;
+                if (categorias.includes(novoNome) && novoNome !== categorias[idx]) {
+                    mostrarErro('Categoria já existe.');
+                    return;
+                }
+                // Atualiza nas transações
+                transacoes.forEach(t => {
+                    if (t.categoria === categorias[idx]) t.categoria = novoNome;
+                });
+                categorias[idx] = novoNome;
+                salvarCategorias();
+                salvarTransacoes();
+                atualizarSelectCategorias();
+                renderizarCategorias();
+                renderizarTransacoes();
+            }
+        });
+    }
+    // --- FIM CATEGORIAS ---
 
     // Carregar do localStorage
     function carregarTransacoes() {
@@ -83,16 +198,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Atualiza o gráfico de pizza de despesas por categoria
     function atualizarPieChart() {
         const ctx = document.getElementById('pie-categorias').getContext('2d');
-        // Agrupa saídas por categoria
-        const categorias = {};
+        // Agrupa saídas por categoria, e cada saída sem categoria aparece individualmente
+        const categoriasDespesas = {};
         transacoes.forEach(t => {
             if (t.tipo === 'saida') {
-                const cat = extrairCategoria(t.descricao) || 'Outros';
-                categorias[cat] = (categorias[cat] || 0) + t.valor;
+                if (t.categoria) {
+                    categoriasDespesas[t.categoria] = (categoriasDespesas[t.categoria] || 0) + t.valor;
+                } else {
+                    // Cada transação sem categoria vira uma fatia individual
+                    const label = `${t.descricao} (SC)`;
+                    categoriasDespesas[label] = (categoriasDespesas[label] || 0) + t.valor;
+                }
             }
         });
-        const labels = Object.keys(categorias);
-        const data = Object.values(categorias);
+        const labels = Object.keys(categoriasDespesas);
+        const data = Object.values(categoriasDespesas);
         if (pieChart) pieChart.destroy();
         pieChart = new Chart(ctx, {
             type: 'pie',
@@ -101,7 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     data,
                     backgroundColor: [
-                        '#e74c3c','#f39c12','#8e44ad','#16a085','#2980b9','#2ecc71','#d35400','#7f8c8d','#c0392b','#27ae60'
+                        '#e74c3c','#f39c12','#8e44ad','#16a085','#2980b9','#2ecc71','#d35400','#7f8c8d','#c0392b','#27ae60',
+                        '#b2becd','#fdcb6e','#00b894','#636e72','#fd79a8','#00cec9','#6c5ce7','#fab1a0','#e17055','#0984e3'
                     ]
                 }]
             },
@@ -203,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             li.className = t.tipo === 'entrada' ? 'transacao-entrada' : 'transacao-saida';
             const dataFormatada = t.data ? new Date(t.data).toLocaleDateString('pt-BR') : '';
             li.innerHTML = `
-                <span>${t.descricao} - <strong>${t.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> <small style='color:#888;'>${dataFormatada}</small></span>
+                <span>${t.descricao} <span style='color:#888;'>[${t.categoria||''}]</span> - <strong>${t.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> <small style='color:#888;'>${dataFormatada}</small></span>
                 <button class="btn-remover" data-idx="${idxReal}">Remover</button>
             `;
             listaTransacoes.appendChild(li);
@@ -227,7 +348,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const descricao = descricaoInput.value.trim();
         const valor = parseFloat(valorInput.value);
-        const tipo = tipoInput.value;
+        const tipo = tipoInputLocal.value;
+        const categoria = selectCategoria.value;
         if (!descricao) {
             mostrarErro('A descrição não pode ficar vazia.');
             descricaoInput.focus();
@@ -238,13 +360,15 @@ document.addEventListener('DOMContentLoaded', () => {
             valorInput.focus();
             return;
         }
+        // Categoria agora é opcional
         const data = new Date().toISOString();
-        transacoes.push({ descricao, valor, tipo, data });
+        transacoes.push({ descricao, valor, tipo, categoria: categoria || undefined, data });
         salvarTransacoes();
         atualizarTotais();
         renderizarTransacoes();
         form.reset();
         descricaoInput.focus();
+        atualizarSelectCategorias();
     });
 
     // Remover transação
@@ -378,6 +502,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Inicialização
+    carregarCategorias();
+    atualizarSelectCategorias();
+    renderizarCategorias();
     carregarTransacoes();
     atualizarTotais();
     renderizarTransacoes();
