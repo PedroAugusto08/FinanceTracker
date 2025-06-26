@@ -501,6 +501,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Swipe lateral para troca de abas no mobile
+    let touchStartX = null;
+    let touchEndX = null;
+    const minSwipeDist = 60; // px
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+        }
+    });
+    document.addEventListener('touchend', function(e) {
+        if (touchStartX === null) return;
+        touchEndX = e.changedTouches[0].clientX;
+        const dist = touchEndX - touchStartX;
+        if (Math.abs(dist) > minSwipeDist) {
+            // Descobre aba atual
+            const tabsArr = Array.from(document.querySelectorAll('.tab'));
+            const activeIdx = tabsArr.findIndex(tab => tab.classList.contains('active'));
+            let nextIdx = activeIdx;
+            if (dist < 0 && activeIdx < tabsArr.length - 1) {
+                nextIdx = activeIdx + 1;
+            } else if (dist > 0 && activeIdx > 0) {
+                nextIdx = activeIdx - 1;
+            }
+            if (nextIdx !== activeIdx) {
+                tabsArr[nextIdx].click();
+            }
+        }
+        touchStartX = null;
+        touchEndX = null;
+    });
+
     // Inicialização
     carregarCategorias();
     atualizarSelectCategorias();
