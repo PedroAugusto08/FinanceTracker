@@ -1,0 +1,23 @@
+{
+  "name": "financetrackerpro",
+  "version": "1.0.0",
+  "description": "Aplicativo web simples de controle financeiro pessoal, desenvolvido com **HTML**, **CSS** e **JavaScript**. A proposta é acompanhar entradas e saídas de dinheiro, manter um saldo atualizado e armazenar os dados localmente.",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PedroAugusto08/FinanceTracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PedroAugusto08/FinanceTracker/issues"
+  },
+  "homepage": "https://github.com/PedroAugusto08/FinanceTracker#readme",
+  "dependencies": {
+    "firebase": "^11.9.1"
+  }
+}
