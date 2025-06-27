@@ -36,14 +36,17 @@ export function logout() {
 // Listener de autenticação
 onAuthStateChanged(auth, user => {
   const loginContainer = document.getElementById('login-container');
+  const appContainer = document.getElementById('app-container');
 
   if (user) {
     if (loginContainer) loginContainer.style.display = 'none';
+    if (appContainer) appContainer.style.display = 'block';
     console.log("Usuário logado:", user);
     
     if (typeof loadData === 'function') loadData();
   } else {
     if (loginContainer) loginContainer.style.display = '';
+    if (appContainer) appContainer.style.display = 'none';
   }
 });
 

@@ -551,7 +551,6 @@ document.addEventListener('touchend', function(e) {
 const btnLoginGoogle = document.getElementById('btn-login-google');
 if (btnLoginGoogle) {
     btnLoginGoogle.addEventListener('click', () => {
-        console.log('Clique no botão de login detectado');
         loginWithGoogle();
     });
 }
