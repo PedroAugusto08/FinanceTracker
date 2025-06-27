@@ -6,15 +6,32 @@ O formato segue as convenções de [Keep a Changelog](https://keepachangelog.com
 
 ---
 
-## [0.1.0] - 2025-06-24
+## [0.3.0] - 2025-06-27
 
 ### Adicionado
-- Estrutura inicial do projeto (`index.html`, `style.css`, `script.js`)
-- Layout base com título, formulário e áreas de saldo
-- Integração entre HTML e JS via `script.js`
-- Lógica para adicionar e listar transações no DOM
-- Cálculo do saldo, entradas e saídas
-- Armazenamento local das transações via `localStorage`
+- Integração completa com **Firebase Firestore** para persistência de dados (transações, categorias, configurações)
+- Autenticação com Google (Firebase Auth)
+- Cada usuário acessa apenas seus próprios dados (isolamento por UID)
+- CRUD de transações e categorias 100% no Firestore
+- Settings (dark mode) salvos no Firestore por usuário
+- Interface de login com Google
+- Interface de abas responsiva e mobile friendly (Dashboard, Transações, Categorias, Configurações)
+- Categorias dinâmicas: adicionar, editar, remover (com bloqueio se em uso)
+- Interface reativa: dados atualizados em tempo real via Firestore
+- Melhorias de acessibilidade e experiência mobile (swipe lateral, ajuste de abas, etc)
+- Ajuste visual para dark mode, contraste e responsividade
+
+### Alterado
+- Removido todo uso de `localStorage` para dados financeiros (agora tudo é Firestore)
+- Refatoração do fluxo de inicialização: dados só carregam após login/autenticação
+- Ajuste no layout das abas para não quebrar ou sair da tela em dispositivos iOS
+
+### Corrigido
+- Bugs de carregamento de scripts, ordem de execução e inicialização da interface
+- Erros de permissão e regras do Firestore
+- Problemas de contraste e visual no dark mode
+
+---
 
 ## [0.2.0] - 2025-06-25
 
@@ -28,6 +45,16 @@ O formato segue as convenções de [Keep a Changelog](https://keepachangelog.com
 - Responsividade para mobile
 
 ---
+
+## [0.1.0] - 2025-06-24
+
+### Adicionado
+- Estrutura inicial do projeto (`index.html`, `style.css`, `script.js`)
+- Layout base com título, formulário e áreas de saldo
+- Integração entre HTML e JS via `script.js`
+- Lógica para adicionar e listar transações no DOM
+- Cálculo do saldo, entradas e saídas
+- Armazenamento local das transações via `localStorage`
 
 ## [Unreleased]
 
