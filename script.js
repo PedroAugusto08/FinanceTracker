@@ -377,13 +377,15 @@ form.addEventListener('submit', async (e) => {
         return;
     }
     const data = new Date().toISOString();
-    await salvarTransacaoFirestore({ descricao, valor, tipo, categoria: categoria || undefined, data });
+    const transacao = { descricao, valor, tipo, categoria: categoria || undefined, data };
+    await salvarTransacaoFirestore(transacao);
     await carregarTransacoesFirestore();
     atualizarTotais();
     renderizarTransacoes();
     form.reset();
     descricaoInput.focus();
     atualizarSelectCategorias();
+    await verificarLimiteCategoria(transacao);
 });
 
 // Remover transação
@@ -577,9 +579,34 @@ window.loadData = loadData;
 // --- CATEGORIAS ---
 function renderizarCategorias() {
   listaCategorias.innerHTML = '';
-  categorias.forEach((cat, idx) => {
+  for (let idx = 0; idx < categorias.length; idx++) {
+    const cat = categorias[idx];
     const li = document.createElement('li');
-    li.style = 'display:flex; align-items:center; justify-content:space-between; background:#f8fafb; border-radius:8px; margin-bottom:8px; padding:8px 12px;';
+    li.style = 'display:flex; align-items:center; justify-content:space-between; background:#f8fafb; border-radius:8px; margin-bottom:8px; padding:8px 12px; gap:8px; flex-wrap:wrap;';
+    // Cria input de limite
+    const inputLimite = document.createElement('input');
+    inputLimite.type = 'number';
+    inputLimite.placeholder = 'Limite';
+    inputLimite.min = '0';
+    inputLimite.step = '0.01';
+    inputLimite.style = 'width:90px; border-radius:6px; border:1px solid #dbe2ea; padding:4px 8px; font-size:0.98em;';
+    // Busca limite atual
+    obterLimiteCategoriaFirestore(cat).then(limite => {
+      if (limite) inputLimite.value = limite;
+    });
+    // Botão salvar limite
+    const btnSalvarLimite = document.createElement('button');
+    btnSalvarLimite.textContent = 'Limite';
+    btnSalvarLimite.style = 'margin-left:4px; background:#f39c12; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:0.95em;';
+    btnSalvarLimite.onclick = async () => {
+      const valor = parseFloat(inputLimite.value);
+      if (isNaN(valor) || valor <= 0) {
+        showToast('Informe um valor de limite válido!', 'alerta');
+        return;
+      }
+      await salvarLimiteCategoriaFirestore(cat, valor);
+      showToast(`Limite salvo para "${cat}"!`, 'sucesso');
+    };
     li.innerHTML = `
       <span>${cat}</span>
       <span>
@@ -587,8 +614,12 @@ function renderizarCategorias() {
         <button class="btn-remover-categoria" data-idx="${idx}" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Remover</button>
       </span>
     `;
+    // Adiciona input e botão de limite
+    const spanBtns = li.querySelector('span:last-child');
+    spanBtns.appendChild(inputLimite);
+    spanBtns.appendChild(btnSalvarLimite);
     listaCategorias.appendChild(li);
-  });
+  }
 }
 
 // Listener para adicionar categoria
@@ -623,3 +654,96 @@ if (listaCategorias) {
         }
     });
 }
+
+// --- TOAST/BANNER DE ALERTA ---
+function showToast(msg, tipo = 'alerta') {
+    let toast = document.getElementById('toast-alerta');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-alerta';
+        toast.style.position = 'fixed';
+        toast.style.top = '24px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.zIndex = '9999';
+        toast.style.background = tipo === 'alerta' ? '#e74c3c' : '#2ecc71';
+        toast.style.color = '#fff';
+        toast.style.padding = '16px 32px';
+        toast.style.borderRadius = '8px';
+        toast.style.boxShadow = '0 2px 12px rgba(44,62,80,0.13)';
+        toast.style.fontWeight = 'bold';
+        toast.style.fontSize = '1.1em';
+        toast.style.opacity = '0.97';
+        toast.style.transition = 'opacity 0.3s';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    toast.style.opacity = '0.97';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { toast.style.display = 'none'; }, 400);
+    }, 3500);
+}
+
+// --- FIRESTORE: LIMITES POR CATEGORIA ---
+async function salvarLimiteCategoriaFirestore(categoria, valor) {
+    const uid = getUserId();
+    if (!uid) return;
+    const ref = doc(db, `users/${uid}/limites/${categoria}`);
+    await setDoc(ref, { valor });
+}
+async function obterLimiteCategoriaFirestore(categoria) {
+    const uid = getUserId();
+    if (!uid) return null;
+    const ref = doc(db, `users/${uid}/limites/${categoria}`);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data().valor : null;
+}
+
+// --- VERIFICAR LIMITES APÓS NOVA TRANSAÇÃO ---
+async function verificarLimiteCategoria(transacao) {
+    if (transacao.tipo !== 'saida' || !transacao.categoria) return;
+    // Soma gastos da categoria no mês
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    const gastosCategoria = transacoes.filter(t =>
+        t.tipo === 'saida' &&
+        t.categoria === transacao.categoria &&
+        t.data && new Date(t.data).getFullYear() === ano && new Date(t.data).getMonth() === mes
+    ).reduce((soma, t) => soma + t.valor, 0);
+    const limite = await obterLimiteCategoriaFirestore(transacao.categoria);
+    if (limite && gastosCategoria > limite) {
+        showToast(`Atenção: Você ultrapassou o limite da categoria "${transacao.categoria}"!`, 'alerta');
+    }
+}
+
+// --- CHAMAR VERIFICAÇÃO APÓS NOVA TRANSAÇÃO ---
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const descricao = descricaoInput.value.trim();
+    const valor = parseFloat(valorInput.value);
+    const tipo = tipoInputLocal.value;
+    const categoria = selectCategoria.value;
+    if (!descricao) {
+        mostrarErro('A descrição não pode ficar vazia.');
+        descricaoInput.focus();
+        return;
+    }
+    if (isNaN(valor) || valor <= 0) {
+        mostrarErro('O valor deve ser maior que zero.');
+        valorInput.focus();
+        return;
+    }
+    const data = new Date().toISOString();
+    const transacao = { descricao, valor, tipo, categoria: categoria || undefined, data };
+    await salvarTransacaoFirestore(transacao);
+    await carregarTransacoesFirestore();
+    atualizarTotais();
+    renderizarTransacoes();
+    form.reset();
+    descricaoInput.focus();
+    atualizarSelectCategorias();
+    await verificarLimiteCategoria(transacao);
+});
