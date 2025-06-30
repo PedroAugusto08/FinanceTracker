@@ -371,35 +371,6 @@ function mostrarErro(msg) {
     }, 2500);
 }
 
-// Adicionar transação
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const descricao = descricaoInput.value.trim();
-    const valor = parseFloat(valorInput.value);
-    const tipo = tipoInputLocal.value;
-    const categoria = selectCategoria.value;
-    if (!descricao) {
-        mostrarErro('A descrição não pode ficar vazia.');
-        descricaoInput.focus();
-        return;
-    }
-    if (isNaN(valor) || valor <= 0) {
-        mostrarErro('O valor deve ser maior que zero.');
-        valorInput.focus();
-        return;
-    }
-    const data = new Date().toISOString();
-    const transacao = { descricao, valor, tipo, categoria: categoria || undefined, data };
-    await salvarTransacaoFirestore(transacao);
-    await carregarTransacoesFirestore();
-    atualizarTotais();
-    renderizarTransacoes();
-    form.reset();
-    descricaoInput.focus();
-    atualizarSelectCategorias();
-    await verificarLimiteCategoria(transacao);
-});
-
 // Remover transação
 listaTransacoes.addEventListener('click', async (e) => {
     if (e.target.classList.contains('btn-remover')) {
@@ -634,6 +605,79 @@ if (formCategoria) {
     });
 }
 
+// --- MODAL DE EDIÇÃO DE CATEGORIA ---
+// Criação do modal no DOM (apenas uma vez)
+let modalEditar = document.getElementById('modal-editar-categoria');
+if (!modalEditar) {
+    modalEditar = document.createElement('div');
+    modalEditar.id = 'modal-editar-categoria';
+    modalEditar.innerHTML = `
+      <div class="modal-content">
+        <button class="modal-close" title="Fechar">&times;</button>
+        <h3>Editar Categoria</h3>
+        <form id="form-editar-categoria">
+          <label for="editar-nome-categoria">Nome</label>
+          <input type="text" id="editar-nome-categoria" required maxlength="32" autocomplete="off">
+          <label for="editar-limite-categoria">Limite (opcional)</label>
+          <input type="number" id="editar-limite-categoria" min="0" step="0.01" placeholder="Limite em R$">
+          <div class="modal-actions">
+            <button type="submit">Salvar</button>
+            <button type="button" class="btn-cancelar">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(modalEditar);
+}
+const formEditarCategoria = modalEditar.querySelector('#form-editar-categoria');
+const inputNomeEditar = modalEditar.querySelector('#editar-nome-categoria');
+const inputLimiteEditar = modalEditar.querySelector('#editar-limite-categoria');
+const btnCancelarEditar = modalEditar.querySelector('.btn-cancelar');
+const btnFecharEditar = modalEditar.querySelector('.modal-close');
+let categoriaAntiga = null;
+
+function abrirModalEditarCategoria(nome, limite) {
+    categoriaAntiga = nome;
+    inputNomeEditar.value = nome;
+    inputLimiteEditar.value = limite !== undefined && limite !== null ? limite : '';
+    modalEditar.style.display = 'flex';
+    setTimeout(() => { inputNomeEditar.focus(); }, 100);
+}
+function fecharModalEditarCategoria() {
+    modalEditar.style.display = 'none';
+    categoriaAntiga = null;
+}
+btnCancelarEditar.onclick = fecharModalEditarCategoria;
+btnFecharEditar.onclick = fecharModalEditarCategoria;
+modalEditar.addEventListener('click', (e) => {
+    if (e.target === modalEditar) fecharModalEditarCategoria();
+});
+
+// Lógica de edição e salvamento no Firestore
+formEditarCategoria.onsubmit = async (e) => {
+    e.preventDefault();
+    const nomeNovo = inputNomeEditar.value.trim();
+    const limiteNovo = inputLimiteEditar.value.trim();
+    if (!nomeNovo) return;
+    // Atualiza nome da categoria (e nas transações)
+    if (nomeNovo !== categoriaAntiga) {
+        await editarCategoriaFirestore(categoriaAntiga, nomeNovo);
+    }
+    // Atualiza limite no Firestore
+    if (limiteNovo && !isNaN(parseFloat(limiteNovo)) && parseFloat(limiteNovo) > 0) {
+        await salvarLimiteCategoriaFirestore(nomeNovo, parseFloat(limiteNovo));
+    } else {
+        // Se o campo for vazio, remove o limite
+        const uid = getUserId();
+        if (uid) {
+            const ref = doc(db, `users/${uid}/limites/${nomeNovo}`);
+            await setDoc(ref, {}, { merge: false });
+        }
+    }
+    showToast('Categoria atualizada!', 'sucesso');
+    fecharModalEditarCategoria();
+};
+
 // Listener para editar/remover categoria
 if (listaCategorias) {
     listaCategorias.addEventListener('click', async (e) => {
@@ -642,10 +686,8 @@ if (listaCategorias) {
         if (btnEditar) {
             const idx = btnEditar.getAttribute('data-idx');
             const nomeAntigo = categorias[idx];
-            const nomeNovo = prompt('Novo nome da categoria:', nomeAntigo);
-            if (nomeNovo && nomeNovo.trim() && nomeNovo !== nomeAntigo) {
-                await editarCategoriaFirestore(nomeAntigo, nomeNovo.trim());
-            }
+            const limite = await obterLimiteCategoriaFirestore(nomeAntigo);
+            abrirModalEditarCategoria(nomeAntigo, limite);
         } else if (btnRemover) {
             const idx = btnRemover.getAttribute('data-idx');
             const nome = categorias[idx];

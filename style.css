@@ -421,3 +421,184 @@ form button:hover {
     background: #2ecc71;
     color: #fff;
 }
+
+/* Modal de edição de categoria - aprimorado e responsivo */
+#modal-editar-categoria {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(44,62,80,0.38);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    backdrop-filter: blur(2px);
+}
+#modal-editar-categoria .modal-content {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 8px 40px rgba(44,62,80,0.22);
+    padding: 32px 28px 24px 28px;
+    min-width: 320px;
+    max-width: 98vw;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: relative;
+    animation: modalFadeIn 0.25s;
+}
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#modal-editar-categoria h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.25em;
+    color: #25324b;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+#modal-editar-categoria label {
+    font-weight: 600;
+    color: #2d3a4b;
+    margin-bottom: 4px;
+    font-size: 1em;
+}
+#modal-editar-categoria input[type="text"],
+#modal-editar-categoria input[type="number"] {
+    padding: 10px;
+    border: 1.5px solid #dbe2ea;
+    border-radius: 8px;
+    font-size: 1.08em;
+    outline: none;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    background: #f8fafb;
+    color: #2d3a4b;
+    transition: border 0.2s, background 0.2s;
+}
+#modal-editar-categoria input:focus {
+    border: 1.5px solid #2ecc71;
+    background: #e3eafc;
+}
+#modal-editar-categoria input[type="number"]::-webkit-inner-spin-button,
+#modal-editar-categoria input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+#modal-editar-categoria .modal-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 8px;
+}
+#modal-editar-categoria button[type="submit"] {
+    background: #27ae60;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 28px;
+    font-size: 1.08em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.13s;
+    box-shadow: 0 2px 8px rgba(39,174,96,0.08);
+}
+#modal-editar-categoria button[type="submit"]:hover {
+    background: #219150;
+    transform: translateY(-2px) scale(1.04);
+}
+#modal-editar-categoria .btn-cancelar {
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 28px;
+    font-size: 1.08em;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.13s;
+    box-shadow: 0 2px 8px rgba(231,76,60,0.08);
+}
+#modal-editar-categoria .btn-cancelar:hover {
+    background: #c0392b;
+    transform: translateY(-2px) scale(1.04);
+}
+#modal-editar-categoria .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.7em;
+    color: #888;
+    cursor: pointer;
+    z-index: 1;
+    transition: color 0.18s, transform 0.13s;
+}
+#modal-editar-categoria .modal-close:hover {
+    color: #e74c3c;
+    transform: scale(1.15);
+}
+
+/* Dark mode para o modal de edição */
+.dark-mode #modal-editar-categoria .modal-content {
+    background: #23272f;
+    color: #f4f6f8;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+}
+.dark-mode #modal-editar-categoria h3,
+.dark-mode #modal-editar-categoria label {
+    color: #e0e6ed;
+}
+.dark-mode #modal-editar-categoria input[type="text"],
+.dark-mode #modal-editar-categoria input[type="number"] {
+    background: #181c22;
+    color: #e0e6ed;
+    border: 1.5px solid #353b48;
+}
+.dark-mode #modal-editar-categoria input:focus {
+    border: 1.5px solid #27ef96;
+    background: #23272f;
+}
+.dark-mode #modal-editar-categoria button[type="submit"] {
+    background: #27ef96;
+    color: #181c22;
+}
+.dark-mode #modal-editar-categoria button[type="submit"]:hover {
+    background: #1fd88a;
+}
+.dark-mode #modal-editar-categoria .btn-cancelar {
+    background: #ff7675;
+    color: #181c22;
+}
+.dark-mode #modal-editar-categoria .btn-cancelar:hover {
+    background: #d63031;
+}
+.dark-mode #modal-editar-categoria .modal-close {
+    color: #b2becd;
+}
+.dark-mode #modal-editar-categoria .modal-close:hover {
+    color: #ff7675;
+}
+
+@media (max-width: 600px) {
+    #modal-editar-categoria .modal-content {
+        min-width: 0;
+        width: 98vw;
+        padding: 16px 2vw 16px 2vw;
+        font-size: 0.98em;
+    }
+    #modal-editar-categoria h3 {
+        font-size: 1.08em;
+    }
+    #modal-editar-categoria button[type="submit"],
+    #modal-editar-categoria .btn-cancelar {
+        padding: 9px 0;
+        width: 48%;
+        font-size: 1em;
+    }
+}
