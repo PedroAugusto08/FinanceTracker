@@ -559,6 +559,7 @@ if (btnLoginGoogle) {
 async function loadData() {
   usuarioAtual = auth.currentUser;
   if (!usuarioAtual) return;
+  // Inicia listeners reativos para categorias e transações
   listenCategoriasFirestore();
   listenTransacoesFirestore();
   // Dark mode
@@ -588,4 +589,37 @@ function renderizarCategorias() {
     `;
     listaCategorias.appendChild(li);
   });
+}
+
+// Listener para adicionar categoria
+if (formCategoria) {
+    formCategoria.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nome = nomeCategoriaInput.value.trim();
+        if (!nome) return;
+        await salvarCategoriaFirestore(nome);
+        nomeCategoriaInput.value = '';
+    });
+}
+
+// Listener para editar/remover categoria
+if (listaCategorias) {
+    listaCategorias.addEventListener('click', async (e) => {
+        const btnEditar = e.target.closest('.btn-editar-categoria');
+        const btnRemover = e.target.closest('.btn-remover-categoria');
+        if (btnEditar) {
+            const idx = btnEditar.getAttribute('data-idx');
+            const nomeAntigo = categorias[idx];
+            const nomeNovo = prompt('Novo nome da categoria:', nomeAntigo);
+            if (nomeNovo && nomeNovo.trim() && nomeNovo !== nomeAntigo) {
+                await editarCategoriaFirestore(nomeAntigo, nomeNovo.trim());
+            }
+        } else if (btnRemover) {
+            const idx = btnRemover.getAttribute('data-idx');
+            const nome = categorias[idx];
+            if (confirm(`Remover categoria "${nome}"?`)) {
+                await removerCategoriaFirestore(nome);
+            }
+        }
+    });
 }
