@@ -662,30 +662,16 @@ function showToast(msg, tipo = 'alerta') {
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toast-alerta';
-        toast.style.position = 'fixed';
-        toast.style.top = '24px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)';
-        toast.style.zIndex = '9999';
-        toast.style.padding = '16px 32px';
-        toast.style.borderRadius = '8px';
-        toast.style.boxShadow = '0 2px 12px rgba(44,62,80,0.13)';
-        toast.style.fontWeight = 'bold';
-        toast.style.fontSize = '1.1em';
-        toast.style.opacity = '0.97';
-        toast.style.transition = 'opacity 0.3s';
         document.body.appendChild(toast);
     }
     toast.textContent = msg;
     toast.style.display = 'block';
     toast.style.opacity = '0.97';
-    // Garante vermelho forte para alerta de limite
+    toast.className = '';
     if (tipo === 'alerta') {
-        toast.style.background = '#ff2222'; // vermelho forte
-        toast.style.color = '#fff';
+        toast.classList.add('alerta');
     } else {
-        toast.style.background = '#2ecc71';
-        toast.style.color = '#fff';
+        toast.classList.add('sucesso');
     }
     setTimeout(() => {
         toast.style.opacity = '0';
