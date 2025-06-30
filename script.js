@@ -140,6 +140,18 @@ async function salvarSettingsFirestore({ darkMode }) {
 // Referências DOM das categorias
 const formCategoria = document.getElementById('form-categoria');
 const nomeCategoriaInput = document.getElementById('nome-categoria');
+// Adiciona input de limite ao formulário, se não existir
+let limiteCategoriaInput = document.getElementById('limite-categoria');
+if (!limiteCategoriaInput && formCategoria) {
+    limiteCategoriaInput = document.createElement('input');
+    limiteCategoriaInput.type = 'number';
+    limiteCategoriaInput.id = 'limite-categoria';
+    limiteCategoriaInput.placeholder = 'Limite (opcional)';
+    limiteCategoriaInput.min = '0';
+    limiteCategoriaInput.step = '0.01';
+    limiteCategoriaInput.style = 'flex:1; min-width:90px; border-radius:6px; border:1px solid #dbe2ea; padding:8px; font-size:1em;';
+    nomeCategoriaInput.insertAdjacentElement('afterend', limiteCategoriaInput);
+}
 const listaCategorias = document.getElementById('lista-categorias');
 // Referência ao select de tipo já existente no HTML
 const tipoInputLocal = document.getElementById('tipo');
@@ -583,41 +595,24 @@ function renderizarCategorias() {
     const cat = categorias[idx];
     const li = document.createElement('li');
     li.style = 'display:flex; align-items:center; justify-content:space-between; background:#f8fafb; border-radius:8px; margin-bottom:8px; padding:8px 12px; gap:8px; flex-wrap:wrap;';
-    // Cria input de limite
-    const inputLimite = document.createElement('input');
-    inputLimite.type = 'number';
-    inputLimite.placeholder = 'Limite';
-    inputLimite.min = '0';
-    inputLimite.step = '0.01';
-    inputLimite.style = 'width:90px; border-radius:6px; border:1px solid #dbe2ea; padding:4px 8px; font-size:0.98em;';
-    // Busca limite atual
+    // Badge de limite
+    const spanNome = document.createElement('span');
+    spanNome.textContent = cat;
+    const badgeLimite = document.createElement('span');
+    badgeLimite.className = 'badge-limite';
+    badgeLimite.textContent = '';
     obterLimiteCategoriaFirestore(cat).then(limite => {
-      if (limite) inputLimite.value = limite;
+      if (limite) badgeLimite.textContent = `Limite: R$ ${Number(limite).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
     });
-    // Botão salvar limite
-    const btnSalvarLimite = document.createElement('button');
-    btnSalvarLimite.textContent = 'Limite';
-    btnSalvarLimite.style = 'margin-left:4px; background:#f39c12; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:0.95em;';
-    btnSalvarLimite.onclick = async () => {
-      const valor = parseFloat(inputLimite.value);
-      if (isNaN(valor) || valor <= 0) {
-        showToast('Informe um valor de limite válido!', 'alerta');
-        return;
-      }
-      await salvarLimiteCategoriaFirestore(cat, valor);
-      showToast(`Limite salvo para "${cat}"!`, 'sucesso');
-    };
-    li.innerHTML = `
-      <span>${cat}</span>
-      <span>
-        <button class="btn-editar-categoria" data-idx="${idx}" style="margin-right:8px; background:#2980b9; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Editar</button>
-        <button class="btn-remover-categoria" data-idx="${idx}" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Remover</button>
-      </span>
+    spanNome.appendChild(badgeLimite);
+    li.appendChild(spanNome);
+    // Botões
+    const spanBtns = document.createElement('span');
+    spanBtns.innerHTML = `
+      <button class="btn-editar-categoria" data-idx="${idx}" style="margin-right:8px; background:#2980b9; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Editar</button>
+      <button class="btn-remover-categoria" data-idx="${idx}" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer;">Remover</button>
     `;
-    // Adiciona input e botão de limite
-    const spanBtns = li.querySelector('span:last-child');
-    spanBtns.appendChild(inputLimite);
-    spanBtns.appendChild(btnSalvarLimite);
+    li.appendChild(spanBtns);
     listaCategorias.appendChild(li);
   }
 }
@@ -627,9 +622,15 @@ if (formCategoria) {
     formCategoria.addEventListener('submit', async (e) => {
         e.preventDefault();
         const nome = nomeCategoriaInput.value.trim();
+        const limite = limiteCategoriaInput.value.trim();
         if (!nome) return;
         await salvarCategoriaFirestore(nome);
+        if (limite && !isNaN(parseFloat(limite)) && parseFloat(limite) > 0) {
+            await salvarLimiteCategoriaFirestore(nome, parseFloat(limite));
+            showToast(`Limite salvo para "${nome}"!`, 'sucesso');
+        }
         nomeCategoriaInput.value = '';
+        limiteCategoriaInput.value = '';
     });
 }
 
@@ -666,8 +667,6 @@ function showToast(msg, tipo = 'alerta') {
         toast.style.left = '50%';
         toast.style.transform = 'translateX(-50%)';
         toast.style.zIndex = '9999';
-        toast.style.background = tipo === 'alerta' ? '#e74c3c' : '#2ecc71';
-        toast.style.color = '#fff';
         toast.style.padding = '16px 32px';
         toast.style.borderRadius = '8px';
         toast.style.boxShadow = '0 2px 12px rgba(44,62,80,0.13)';
@@ -680,6 +679,14 @@ function showToast(msg, tipo = 'alerta') {
     toast.textContent = msg;
     toast.style.display = 'block';
     toast.style.opacity = '0.97';
+    // Garante vermelho forte para alerta de limite
+    if (tipo === 'alerta') {
+        toast.style.background = '#ff2222'; // vermelho forte
+        toast.style.color = '#fff';
+    } else {
+        toast.style.background = '#2ecc71';
+        toast.style.color = '#fff';
+    }
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => { toast.style.display = 'none'; }, 400);
