@@ -1,14 +1,14 @@
 const CACHE_NAME = 'finance-tracker-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/auth.js',
-  '/firebase-config.js',
-  '/manifest.json',
-  '/android-icon-192x192.png',
-  '/apple-icon-512x512.png',
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './auth.js',
+  './firebase-config.js',
+  './manifest.json',
+  './android-icon-192x192.png',
+  './apple-icon-512x512.png',
   'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js',
   'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js',
   'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js'
