@@ -540,6 +540,21 @@ if (btnLoginGoogle) {
     });
 }
 
+// Botão de logout
+const btnLogout = document.getElementById('btn-logout');
+if (btnLogout) {
+    btnLogout.addEventListener('click', async () => {
+        if (typeof auth !== 'undefined' && auth.signOut) {
+            await auth.signOut();
+        } else if (typeof firebase !== 'undefined' && firebase.auth) {
+            await firebase.auth().signOut();
+        }
+        // Esconde app, mostra login
+        document.getElementById('app-container').style.display = 'none';
+        document.getElementById('login-container').style.display = 'flex';
+    });
+}
+
 // --- INICIALIZAÇÃO REATIVA ---
 async function loadData() {
   usuarioAtual = auth.currentUser;
