@@ -691,6 +691,7 @@ formEditarCategoria.onsubmit = async (e) => {
     }
     showToast('Categoria atualizada!', 'sucesso');
     fecharModalEditarCategoria();
+    await carregarCategorias(); // Força atualização imediata da lista
 };
 
 // Listener para editar/remover categoria
