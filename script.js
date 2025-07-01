@@ -555,10 +555,25 @@ if (btnLogout) {
     });
 }
 
+// Função utilitária para mostrar/ocultar loader
+function showLoader() {
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'flex';
+}
+function hideLoader() {
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'none';
+}
+
+// Exibe loader ao iniciar carregamento do Firebase
+
 // --- INICIALIZAÇÃO REATIVA ---
 async function loadData() {
   usuarioAtual = auth.currentUser;
-  if (!usuarioAtual) return;
+  if (!usuarioAtual) {
+    hideLoader();
+    return;
+  }
   // Inicia listeners reativos para categorias e transações
   listenCategoriasFirestore();
   listenTransacoesFirestore();
@@ -571,8 +586,21 @@ async function loadData() {
     toggleDark.checked = false;
     document.body.classList.remove('dark-mode');
   }
+  hideLoader();
 }
 window.loadData = loadData;
+
+// Listener de autenticação (onAuthStateChanged)
+if (typeof auth !== 'undefined' && auth.onAuthStateChanged) {
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            showLoader();
+            await loadData();
+        } else {
+            hideLoader();
+        }
+    });
+}
 
 // --- CATEGORIAS ---
 function renderizarCategorias() {

@@ -103,6 +103,15 @@
                 </div>
         </section>
     </div>
+    <div id="loader" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,255,255,0.85); z-index:99999; display:flex; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:16px; box-shadow:0 2px 16px rgba(44,62,80,0.13); padding:36px 48px; display:flex; flex-direction:column; align-items:center; gap:18px;">
+            <div class="loader-spinner" style="width:48px; height:48px; border:6px solid #e3eafc; border-top:6px solid #2ecc71; border-radius:50%; animation:spin 1s linear infinite;"></div>
+            <span style="font-size:1.15em; color:#2d3a4b; font-weight:600;">Carregando dados...</span>
+        </div>
+    </div>
+    <style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
     <!-- Scripts principais -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="firebase-config.js"></script>
