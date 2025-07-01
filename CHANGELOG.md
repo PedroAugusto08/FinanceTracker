@@ -6,6 +6,26 @@ O formato segue as convenções de [Keep a Changelog](https://keepachangelog.com
 
 ---
 
+## [0.4.0] - 2025-07-01
+
+### Adicionado
+- Modal de edição de categoria: permite editar nome e limite, com visual moderno e responsivo (dark mode incluso)
+- Badge de limite ao lado do nome da categoria, atualizado em tempo real
+- Toast/banner de alerta visual para limite ultrapassado, com cor vermelha destacada
+- Botão de logout na aba de configurações (desloga usuário e retorna à tela de login)
+- Swipe lateral para troca de abas no mobile
+
+### Alterado
+- Atualização imediata da lista de categorias e limites após edição (sem precisar recarregar a página)
+- Modal de edição aprimorado para melhor experiência em dark mode e mobile
+- Correção de bug de duplicidade ao criar transações
+
+### Corrigido
+- Edição de categoria agora reflete imediatamente na interface
+- Ajustes de responsividade e contraste no modal de edição
+
+---
+
 ## [0.3.0] - 2025-06-27
 
 ### Adicionado

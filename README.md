@@ -21,7 +21,11 @@ Aplicativo web moderno de controle financeiro pessoal, desenvolvido com **HTML**
 - [x] Settings (dark mode) salvos no Firestore por usuário
 - [x] Interface de login com Google
 - [x] Interface de abas responsiva e mobile friendly (Dashboard, Transações, Categorias, Configurações)
-- [x] Categorias dinâmicas: adicionar, editar, remover (com bloqueio se em uso)
+- [x] Categorias dinâmicas: adicionar, editar (modal), remover (com bloqueio se em uso)
+- [x] Modal de edição de categoria (nome e limite), visual moderno e responsivo (dark mode incluso)
+- [x] Badge de limite ao lado do nome da categoria, atualizado em tempo real
+- [x] Toast/banner de alerta visual para limite ultrapassado, com cor vermelha destacada
+- [x] Botão de logout na aba de configurações (desloga usuário e retorna à tela de login)
 - [x] Interface reativa: dados atualizados em tempo real via Firestore
 - [x] Adicionar receitas e despesas
 - [x] Exibir saldo, total de entradas e saídas
