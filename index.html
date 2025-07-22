@@ -62,8 +62,29 @@
                     <option value="entrada">Entrada</option>
                     <option value="saida">Saída</option>
                 </select>
+                <!-- NOVO: Recorrência -->
+                <select id="recorrencia" style="min-width:120px;">
+                    <option value="unica">Única</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensal">Mensal</option>
+                    <option value="personalizada">Personalizada</option>
+                </select>
+                <input type="number" id="intervalo-personalizado" placeholder="Intervalo (dias)" min="1" style="display:none; max-width:120px;" />
+                <input type="date" id="data-fim-recorrencia" placeholder="Data fim (opcional)" style="max-width:160px;" />
                 <button type="submit">Adicionar</button>
             </form>
+            <script>
+            // Exibe campo de intervalo personalizado se selecionado
+            const recorrenciaSelect = document.getElementById('recorrencia');
+            const intervaloInput = document.getElementById('intervalo-personalizado');
+            recorrenciaSelect.addEventListener('change', function() {
+                if (this.value === 'personalizada') {
+                    intervaloInput.style.display = 'inline-block';
+                } else {
+                    intervaloInput.style.display = 'none';
+                }
+            });
+            </script>
             <div class="filtros-transacoes" style="text-align:center; margin: 16px 0;">
                 <button id="btn-mostrar-entradas" type="button">Mostrar Entradas</button>
                 <button id="btn-mostrar-saidas" type="button">Mostrar Saídas</button>

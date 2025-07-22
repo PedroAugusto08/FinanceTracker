@@ -323,14 +323,49 @@ function atualizarSelectCategorias() {
   });
 }
 
+// Gera instâncias futuras de transações recorrentes para exibição
+function gerarTransacoesRecorrentes(transacoesOriginais) {
+    const hoje = new Date();
+    const transacoesComRecorrencia = [];
+    for (const t of transacoesOriginais) {
+        if (!t.recorrencia || t.recorrencia.tipo === 'unica') {
+            transacoesComRecorrencia.push(t);
+            continue;
+        }
+        // Sempre inclui a transação original
+        transacoesComRecorrencia.push(t);
+        // Gera instâncias futuras até data final ou até 12 meses à frente
+        let dataBase = new Date(t.data);
+        let limite = 12; // máximo de 12 instâncias futuras
+        let intervaloDias = 0;
+        if (t.recorrencia.tipo === 'mensal') intervaloDias = 30;
+        else if (t.recorrencia.tipo === 'semanal') intervaloDias = 7;
+        else if (t.recorrencia.tipo === 'personalizada') intervaloDias = t.recorrencia.intervalo || 1;
+        let dataFim = t.recorrencia.dataFim ? new Date(t.recorrencia.dataFim) : null;
+        for (let i = 1; i < limite; i++) {
+            let proximaData = new Date(dataBase);
+            if (t.recorrencia.tipo === 'mensal') {
+                proximaData.setMonth(proximaData.getMonth() + i);
+            } else {
+                proximaData.setDate(proximaData.getDate() + intervaloDias * i);
+            }
+            if (proximaData > hoje && (!dataFim || proximaData <= dataFim)) {
+                transacoesComRecorrencia.push({ ...t, data: proximaData.toISOString(), id: t.id + '_rec_' + i });
+            }
+        }
+    }
+    return transacoesComRecorrencia;
+}
+
 // Renderizar lista com filtro e ordenação
 async function renderizarTransacoes() {
     listaTransacoes.innerHTML = '';
-    let transacoesFiltradas = transacoes;
+    // Gera instâncias recorrentes para exibição
+    let transacoesFiltradas = gerarTransacoesRecorrentes(transacoes);
     if (filtro === 'entrada') {
-        transacoesFiltradas = transacoes.filter(t => t.tipo === 'entrada');
+        transacoesFiltradas = transacoesFiltradas.filter(t => t.tipo === 'entrada');
     } else if (filtro === 'saida') {
-        transacoesFiltradas = transacoes.filter(t => t.tipo === 'saida');
+        transacoesFiltradas = transacoesFiltradas.filter(t => t.tipo === 'saida');
     }
     transacoesFiltradas = filtrarPorData(transacoesFiltradas);
     // Ordenação
@@ -346,20 +381,34 @@ async function renderizarTransacoes() {
         }
         return 0;
     });
-    transacoesFiltradas.forEach((t, idx) => {
-        const idxReal = transacoes.indexOf(t);
+    transacoesFiltradas.forEach((t) => {
+        // Só permite remover transações reais (id não termina com _rec_N)
+        const isRecorrenteVirtual = t.id && t.id.includes('_rec_');
         const li = document.createElement('li');
         li.className = t.tipo === 'entrada' ? 'transacao-entrada' : 'transacao-saida';
         const dataFormatada = t.data ? new Date(t.data).toLocaleDateString('pt-BR') : '';
         li.innerHTML = `
             <span>${t.descricao} <span style='color:#888;'>[${t.categoria||''}]</span> - <strong>${t.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong> <small style='color:#888;'>${dataFormatada}</small></span>
-            <button class="btn-remover" data-idx="${idxReal}">Remover</button>
+            ${!isRecorrenteVirtual && t.id ? `<button class="btn-remover" data-id="${t.id}">Remover</button>` : ''}
         `;
         listaTransacoes.appendChild(li);
     });
     atualizarPieChart();
     atualizarLineChart();
 }
+
+// Atualiza o listener de remoção para usar data-id
+listaTransacoes.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('btn-remover')) {
+        const id = e.target.getAttribute('data-id');
+        if (id) {
+            await removerTransacaoFirestore(id);
+            await carregarTransacoesFirestore();
+            atualizarTotais();
+            renderizarTransacoes();
+        }
+    }
+});
 
 // Exibir mensagem de erro temporária
 function mostrarErro(msg) {
@@ -805,6 +854,11 @@ form.addEventListener('submit', async (e) => {
     const valor = parseFloat(valorInput.value);
     const tipo = tipoInputLocal.value;
     const categoria = selectCategoria.value;
+    // NOVOS CAMPOS DE RECORRÊNCIA
+    const recorrencia = document.getElementById('recorrencia').value;
+    const intervaloPersonalizado = document.getElementById('intervalo-personalizado').value;
+    const dataFimRecorrencia = document.getElementById('data-fim-recorrencia').value;
+
     if (!descricao) {
         mostrarErro('A descrição não pode ficar vazia.');
         descricaoInput.focus();
@@ -816,7 +870,17 @@ form.addEventListener('submit', async (e) => {
         return;
     }
     const data = new Date().toISOString();
-    const transacao = { descricao, valor, tipo, categoria: categoria || undefined, data };
+    // Monta objeto de recorrência
+    let infoRecorrencia = { tipo: recorrencia };
+    if (recorrencia === 'personalizada') {
+        infoRecorrencia.intervalo = parseInt(intervaloPersonalizado) || 1;
+    }
+    if (dataFimRecorrencia) {
+        infoRecorrencia.dataFim = dataFimRecorrencia;
+    }
+    if (recorrencia === 'unica') infoRecorrencia = null;
+
+    const transacao = { descricao, valor, tipo, categoria: categoria || undefined, data, recorrencia: infoRecorrencia };
     await salvarTransacaoFirestore(transacao);
     await carregarTransacoesFirestore();
     atualizarTotais();
