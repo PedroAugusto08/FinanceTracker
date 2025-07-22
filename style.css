@@ -624,50 +624,118 @@ form button:hover {
     transform: scale(0.98);
 }
 
-/* Estilos aprimorados para os filtros por data */
+/* Estilos aprimorados para os filtros por data e ordenação */
+.filtros-transacoes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.1);
+    margin: 16px auto;
+    max-width: 400px;
+}
 .filtros-transacoes label {
     font-weight: 600;
     color: #2d3a4b;
     margin-right: 8px;
 }
 .filtros-transacoes input[type="date"] {
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #dbe2ea;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 1em;
     outline: none;
-    transition: border 0.2s;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 3px rgba(44,62,80,0.07);
 }
 .filtros-transacoes input[type="date"]:focus {
     border: 1.5px solid #2ecc71;
+    box-shadow: 0 2px 8px rgba(46,204,113,0.15);
 }
 
-/* Estilos aprimorados para os filtros de ordenação */
+/* Ajustes para posicionar os filtros de ordenação */
+.ordenacao-transacoes {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: #f8fafb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.1);
+    margin: 16px auto;
+    max-width: 400px;
+}
 .ordenacao-transacoes label {
     font-weight: 600;
     color: #2d3a4b;
-    margin-right: 8px;
 }
 .ordenacao-transacoes select {
-    padding: 8px;
+    flex: 1;
+    padding: 10px;
     border: 1px solid #dbe2ea;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 1em;
     outline: none;
-    transition: border 0.2s;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 3px rgba(44,62,80,0.07);
 }
 .ordenacao-transacoes select:focus {
     border: 1.5px solid #2ecc71;
+    box-shadow: 0 2px 8px rgba(46,204,113,0.15);
 }
 
 /* Ajustes para responsividade */
 @media (max-width: 600px) {
-    .filtros-transacoes button {
-        font-size: 0.9em;
-        padding: 6px 12px;
+    .ordenacao-transacoes {
+        flex-direction: column;
+        gap: 8px;
+        max-width: 98vw;
+        padding: 12px;
     }
-    .filtros-transacoes input[type="date"], .ordenacao-transacoes select {
+    .ordenacao-transacoes select {
         font-size: 0.9em;
-        padding: 6px 12px;
+        padding: 8px;
     }
+}
+
+/* Ajustes para dark mode nos filtros por data e ordenação */
+.dark-mode .filtros-transacoes {
+    background: #23272f;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.dark-mode .filtros-transacoes label {
+    color: #e0e6ed;
+}
+.dark-mode .filtros-transacoes input[type="date"] {
+    background: #181c22;
+    color: #e0e6ed;
+    border: 1px solid #353b48;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.13);
+}
+.dark-mode .filtros-transacoes input[type="date"]:focus {
+    border: 1.5px solid #27ef96;
+    box-shadow: 0 2px 8px rgba(39,174,96,0.15);
+}
+
+.dark-mode .ordenacao-transacoes {
+    background: #23272f;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.dark-mode .ordenacao-transacoes label {
+    color: #e0e6ed;
+}
+.dark-mode .ordenacao-transacoes select {
+    background: #181c22;
+    color: #e0e6ed;
+    border: 1px solid #353b48;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.13);
+}
+.dark-mode .ordenacao-transacoes select:focus {
+    border: 1.5px solid #27ef96;
+    box-shadow: 0 2px 8px rgba(39,174,96,0.15);
 }
