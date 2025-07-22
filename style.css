@@ -602,3 +602,72 @@ form button:hover {
         font-size: 1em;
     }
 }
+
+/* Estilos aprimorados para os botões na aba de transações com cor verde */
+.filtros-transacoes button {
+    background: #2ecc71;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(46,204,113,0.15);
+}
+.filtros-transacoes button:hover {
+    background: #27ae60;
+    transform: translateY(-2px);
+}
+.filtros-transacoes button:active {
+    background: #1f8a50;
+    transform: scale(0.98);
+}
+
+/* Estilos aprimorados para os filtros por data */
+.filtros-transacoes label {
+    font-weight: 600;
+    color: #2d3a4b;
+    margin-right: 8px;
+}
+.filtros-transacoes input[type="date"] {
+    padding: 8px;
+    border: 1px solid #dbe2ea;
+    border-radius: 6px;
+    font-size: 1em;
+    outline: none;
+    transition: border 0.2s;
+}
+.filtros-transacoes input[type="date"]:focus {
+    border: 1.5px solid #2ecc71;
+}
+
+/* Estilos aprimorados para os filtros de ordenação */
+.ordenacao-transacoes label {
+    font-weight: 600;
+    color: #2d3a4b;
+    margin-right: 8px;
+}
+.ordenacao-transacoes select {
+    padding: 8px;
+    border: 1px solid #dbe2ea;
+    border-radius: 6px;
+    font-size: 1em;
+    outline: none;
+    transition: border 0.2s;
+}
+.ordenacao-transacoes select:focus {
+    border: 1.5px solid #2ecc71;
+}
+
+/* Ajustes para responsividade */
+@media (max-width: 600px) {
+    .filtros-transacoes button {
+        font-size: 0.9em;
+        padding: 6px 12px;
+    }
+    .filtros-transacoes input[type="date"], .ordenacao-transacoes select {
+        font-size: 0.9em;
+        padding: 6px 12px;
+    }
+}
