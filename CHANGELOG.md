@@ -6,6 +6,22 @@ O formato segue as convenções de [Keep a Changelog](https://keepachangelog.com
 
 ---
 
+## [0.5.0] - 2025-07-22
+
+### Adicionado
+- Suporte a transações recorrentes: agora é possível cadastrar receitas e despesas com recorrência mensal, semanal ou personalizada (intervalo em dias e data final opcional).
+- Instâncias futuras de transações recorrentes são exibidas automaticamente na lista, gráficos e totais, sem duplicar no banco.
+- Campos de recorrência adicionados ao formulário de transação, com seleção de tipo e intervalo.
+- Melhorias visuais e responsivas nos filtros de data e ordenação.
+- Botões de filtro de transação com visual verde e responsivo.
+- Suporte completo a dark mode para filtros e ordenação.
+
+### Corrigido
+- Corrigido bug que impedia criar ou remover transações após implementação de recorrência.
+- Agora só é possível remover transações reais (não recorrentes virtuais), evitando erros e inconsistências.
+
+---
+
 ## [0.4.0] - 2025-07-01
 
 ### Adicionado

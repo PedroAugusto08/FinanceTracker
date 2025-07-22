@@ -39,6 +39,13 @@ Aplicativo web moderno de controle financeiro pessoal, desenvolvido com **HTML**
 - [x] Dark mode com toggle (persistente por usuário)
 - [x] Responsividade para mobile
 - [x] Swipe lateral para troca de abas no mobile
+- [x] **Transações recorrentes**: cadastre receitas/despesas mensais, semanais ou com intervalo personalizado (ex: aluguel, salário, assinaturas)
+- [x] Instâncias futuras de transações recorrentes aparecem automaticamente na lista, gráficos e totais, sem duplicar no banco
+- [x] Campos de recorrência no formulário de transação (tipo e intervalo)
+- [x] Melhorias visuais nos filtros por data e ordenação (mais bonitos, suaves e responsivos)
+- [x] Botões de filtro de transação verdes e responsivos
+- [x] Suporte completo a dark mode para filtros e ordenação
+- [x] Correção: só é possível remover transações reais (não recorrentes virtuais), evitando erros
 
 ---
 
